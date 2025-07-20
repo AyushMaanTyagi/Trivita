@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice To Text</title>
+</head>
+<body>
+    <h1>This is the voice to text converter</h1>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file" accept="audio/*" required>
+        <button type="submit">Upload File</button>
+    </form>
+    {% if transcription %}
+    <h2>Transcribed Text</h2>
+    <pre><h2>{{transcription}}<h2></pre>
+<form action="/analyze" method="POST">
+    <input type="hidden" name="text" value="{{transcription}}">
+    <button type="submit">Generate Report</button>
+</form>
+    {% endif %}
+
+    <!-- {% if keywords %}
+    <h2>Analysed Text</h2>
+    <h3>Predicted Label</h3>
+    <pre><h2>{{predicted_label}}<h2></pre>
+    <h3>Keywords</h3>
+    <pre><h2>{{keywords}}<h2></pre>
+    <h3>Probability of Prediction</h3>
+    <pre><h2>{{probs}}<h2></pre>
+    {% endif %} -->
+
+    
+ <div class="container">
+    <h1>Symptom Analysis Tool</h1>
+    <!-- <textarea id="inputText" placeholder="Enter your symptoms here..."></textarea>
+    <button onclick="submitText()">Analyze</button> -->
+
+    <div id="result" style="margin-top: 20px;"></div>
+    <a id="downloadLink" href="#" download="report.pdf" style="display:none;">Download Report</a>
+  </div>
+
+
+<!-- JavaScript to clear the URL query after displaying transcription -->
+<!-- <script>
+  if (window.location.search.includes("transcription=")) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+</script> -->
+
+<script>
+    function submitText() {
+      const text = document.getElementById('inputText').value;
+        formdata = new FormData();
+        formdata.append('text',text);
+      fetch('/analyze', {
+        method: 'POST',
+        // headers: {'Content-Type': 'application/json'},
+        body: formdata
+      })
+      .then(response => {
+        response.json()
+        print("response is ",response)
+      })
+      .then(data => {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `<p><strong>Predicted Label:</strong> ${data.predicted_label}</p>
+          <p><strong>Top Keywords:</strong> ${data.keywords.map(k => k[0] + ' (' + k[1].toFixed(2) + ')').join(', ')}</p>
+          <p><strong>Probabilities:</strong></p>
+          <ul>${Object.entries(data.probs).map(([k,v]) => `<li>${k}: ${(v*100).toFixed(2)}%</li>`).join('')}</ul>
+        `;
+        const link = document.getElementById('downloadLink');
+        link.href = `/download/${data.filename}`;
+        link.style.display = 'inline';
+      });
+    }
+  </script>
+</body>
+</html>
